@@ -1,2 +1,1 @@
-# observe-literal
-easy and functional observer pattern api for use with literals. const subj = new Observable("example inital literal"); subj.on("update", doSomething)
+a preset for creating a simple es6 repo with tape and sinon for tdd. library code. not intended for web. no webpack. simple.
