@@ -29,6 +29,7 @@
     "tape": "^4.8.0"
   },
   "dependencies": {
+    "l3p-core": "^0.0.6",
     "lodash": "^4.17.4"
   }
 }

@@ -1,9 +1,10 @@
-import lodash from "lodash"
-import "../globals/Function"
-import "../globals/Object"
-import "../globals/Array"
-import Callback from "./Callback"
-import getClassName from "./helpers/getClassName"
+const lodash = require("lodash")
+require("l3p-core").protoExtArray
+require("l3p-core").protoExtFunction
+require("l3p-core").protoExtObject
+const Callback = require("./Callback")
+const getClassName = require("./helpers/getClassName")
+
 
 function Observe(value, options = { 
     noExec: false, 
@@ -457,8 +458,11 @@ function Observe(value, options = {
     }
 }
 
-export default class Observable {
+class Observable {
     constructor(value){
         return Observe(value)
     }
 }
+
+
+module.exports = Observable
