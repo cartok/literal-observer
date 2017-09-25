@@ -1,9 +1,9 @@
-const lodash = require("lodash")
-require("l3p-core").protoExtArray
-require("l3p-core").protoExtFunction
-require("l3p-core").protoExtObject
-const Callback = require("./Callback")
-const getClassName = require("./helpers/getClassName")
+import { merge } from "lodash"
+import { protoExtArray } from "l3p-core" 
+import { protoExtFunction } from "l3p-core" 
+import { protoExtObject } from "l3p-core" 
+import Callback from "./Callback"
+import getClassName from "./helpers/getClassName"
 
 
 function Observe(value, options = { 
@@ -81,7 +81,7 @@ function Observe(value, options = {
                 if(this.callBackOnlyChanges === true || options.callBackOnlyChanges === true){
                     switch(getClassName(_value).toLowerCase()){
                         case "object":
-                            _value = lodash.merge(_value, value)
+                            _value = merge(_value, value)
                             break
                         default:
                             _value = value
@@ -458,11 +458,8 @@ function Observe(value, options = {
     }
 }
 
-class Observable {
+export default class Observable {
     constructor(value){
         return Observe(value)
     }
 }
-
-
-module.exports = Observable

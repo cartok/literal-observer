@@ -1,4 +1,2 @@
-"use strict";
+export default (o: Object) => o.__proto__.constructor.name
 
-const getClassName = (object) => object.__proto__.constructor.name
-module.exports = getClassName

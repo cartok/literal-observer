@@ -1,12 +1,20 @@
 {
-  "name": "observe-literal",
-  "version": "0.3.2",
+  "name": "literal-observer",
+  "version": "0.4.0",
   "description": "observable implementation for js literals. api leaned on jquery-dom-event-api.",
-  "main": "src/Observable.js",
+  "main": "build/Observable.js",
   "scripts": {
-    "test": "./bin/babel-tape-runner ./test/**/*.test.js | ./bin/tap-spec",
-    "monitor": "nodemon -x \"./bin/babel-tape-runner ./test/**/*.test.js | ./bin/tap-spec\"",
-    "prepublishOnly": "npm run test"
+    "sound:plock": "play -q -v 0.2 $(find /usr/share/sounds/ -type f -name *device-added* | head -n 1)",
+    "sound:microwave": "play -q -v 0.1 $(find /usr/share/sounds/ -type f -name *complete* | head -n 1)",
+    "sound:trash": "play -q -v 0.15 $(find /usr/share/sounds/ -type f -name *trash*  | head -n 1)",
+    "clean:js": "rm $(find ./build/ -type f -regex '.*\\.[jt]sx?'); npm run --silent sound:trash",
+    "clean:dir": "rm -rf ./build; npm run --silent sound:trash",
+    "build": "clear; npm run --silent clean:dir; babel ./src --out-dir ./build; npm run --silent sound:microwave",
+    "test": "clear; npm run --silent build; ./bin/mocha --compilers js:babel-core/register --require jsdom-global/register; npm run --silent sound:plock",
+    "dev": "nodemon -x \"rm -rf ./build; babel ./src --out-dir ./build;./bin/mocha --compilers js:babel-core/register --require jsdom-global/register; npm run --silent sound:plock\"",
+    "prepublishOnly": "npm run --silent test",
+    "pp": "clear; npm version patch; npm publish",
+    "p": "clear; npm publish"
   },
   "repository": {
     "type": "git",
@@ -15,21 +23,33 @@
   "author": "Dennis Weiershäuser <dennis.weiershaeuser@l3p-cv.com>",
   "license": "UNLICENSED",
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-eslint": "^8.0.0",
-    "babel-plugin-lodash": "^3.2.11",
-    "babel-preset-env": "^1.6.0",
-    "babel-tape-runner": "^2.0.1",
-    "eslint": "^4.5.0",
-    "eslint-plugin-flowtype": "^2.35.0",
-    "nodemon": "^1.12.1",
-    "sinon": "^3.2.1",
-    "tap-simple": "^0.3.1",
-    "tap-spec": "^4.1.1",
-    "tape": "^4.8.0"
+    "babel-cli": "*",
+    "babel-eslint": "*",
+    "babel-plugin-transform-flow-strip-types": "*",
+    "babel-preset-env": "*",
+    "babel-tape-runner": "*",
+    "chai": "*",
+    "del-cli": "*",
+    "eslint": "*",
+    "eslint-plugin-flowtype": "*",
+    "flow-bin": "*",
+    "jquery": "^3.2.1",
+    "jsdom": "*",
+    "jsdom-global": "*",
+    "mocha": "*",
+    "nodemon": "*"
   },
   "dependencies": {
     "l3p-core": "^0.0.6",
     "lodash": "^4.17.4"
-  }
+  },
+  "nodemonConfig": {
+    "ignore": [
+        "build",
+        "built",
+        "dist",
+        "bin",
+        "node_modules"
+    ]
+}
 }

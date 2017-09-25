@@ -1,5 +1,4 @@
-const getClassName = require("./helpers/getClassName")
-
+import getClassName from "./helpers/getClassName"
 
 const VALID_EVENT_NAMES = [ "add", "remove", "update", "before-update", "reset" ]
 
@@ -13,7 +12,7 @@ const VALID_EVENT_NAMES = [ "add", "remove", "update", "before-update", "reset" 
 // that are added on the observable object by a function call.
 // if no custom functions were added to the constructor get the
 // datatype of the original value and add default methods.
-class Callback{
+export default class Callback{
     constructor(eventIdentifier, callback, self){
         // @remove: id, should be no need for it.
         this.id = getCallbackIndex()
@@ -142,5 +141,3 @@ function getCallbackIndex(){
     return ++counter
 }
 // ---------------------------------------------------------------------------
-
-module.exports = Callback
