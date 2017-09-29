@@ -1,6 +1,6 @@
 {
   "name": "literal-observer",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "observable implementation for js literals. api leaned on jquery-dom-event-api.",
   "main": "build/Observable.js",
   "scripts": {
@@ -45,11 +45,11 @@
   },
   "nodemonConfig": {
     "ignore": [
-        "build",
-        "built",
-        "dist",
-        "bin",
-        "node_modules"
+      "build",
+      "built",
+      "dist",
+      "bin",
+      "node_modules"
     ]
-}
+  }
 }
