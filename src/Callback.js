@@ -1,6 +1,6 @@
 import getClassName from "./helpers/getClassName"
 
-const VALID_EVENT_NAMES = [ "add", "remove", "update", "before-update", "reset" ]
+const VALID_EVENT_NAMES = [ "add", "remove", "update", "before-update", "after-update", "reset" ]
 
 // Callback
 // ---------------------------------------------------------------------------
