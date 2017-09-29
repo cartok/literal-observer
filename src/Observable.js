@@ -74,8 +74,13 @@ function Observe(value, options = {
             }){
                 // instead of using the .value setter one can use this method to update the value
                 this.isInInitialState = false
-                if(this.noExec === false || options.noExec === false)
-                    eventExecCallback("before-update", { callBackOnlyChanges: options.callBackOnlyChanges })
+
+                // BEFORE-UPDATE
+                if(this.noExec === false || options.noExec === false){
+                    eventExecCallback("before-update", { 
+                        callBackOnlyChanges: options.callBackOnlyChanges 
+                    })
+                }
 
                 // the actual update
                 if(this.callBackOnlyChanges === true || options.callBackOnlyChanges === true){
@@ -94,8 +99,18 @@ function Observe(value, options = {
                 // handeled to the callback functions on event. (instead of the updated "_value")
                 _change = value
 
+                // UPDATE
                 if(this.noExec === false || options.noExec === false){
-                    eventExecCallback("update", { callBackOnlyChanges: options.callBackOnlyChanges })
+                    eventExecCallback("update", { 
+                        callBackOnlyChanges: options.callBackOnlyChanges 
+                    })
+                }
+
+                // AFTER-UPDATE
+                if(this.noExec === false || options.noExec === false){
+                    eventExecCallback("after-update", { 
+                        callBackOnlyChanges: options.callBackOnlyChanges 
+                    })
                 }
             },
             get value(){
@@ -433,9 +448,8 @@ function Observe(value, options = {
                 } else {
                     switch(eventName){
                         case "before-update":
-                            validCb.callback(_value)
-                            break
                         case "update":
+                        case "after-update":
                             validCb.callback(_value)
                             break
                         case "add":
