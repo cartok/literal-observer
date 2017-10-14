@@ -9,10 +9,9 @@ import $ from "jquery"
 // actual imports
 import Observable from "../build/Observable"
 
-describe("testing obserable for string literal", () => {
-    const o = new Observable("initial test literal")
-    it("...", () => {
-        o.should.not.be.an("undefined")
+describe("testing import", () => {
+    it("should import Observable", () => {
+        Observable.should.not.be.an("undefined")
     })
 })
 

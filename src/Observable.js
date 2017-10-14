@@ -1,4 +1,7 @@
 import { merge } from "lodash"
+// DONT MAKE THIS DEPENDEND ON L3P-CORE .
+// SO ON NPM WEB THE DEPENDENCY IS NOT SHOWN.
+// USING OWN REGISTRY.
 import { protoExtArray } from "l3p-core" 
 import { protoExtFunction } from "l3p-core" 
 import { protoExtObject } from "l3p-core" 
@@ -320,12 +323,6 @@ function Observe(value, options = {
                 this.Callbacks.push(new Callback(eventIdentifier, callback, self))
             },
             off(eventIdentifier, callback, self){
-                /**
-                PROBLEM: wenn ein eventIdentifier und self eingegeben wird
-                könnte es schwierigkeiten mit der falluntescheidung geben.
-                -> richtige typechecks? parameter in ein objekt stecken?
-                */
-                // console.log(`OFF: eventIdentifier: ${eventIdentifier}, callback: ${callback}, self: ${self}`)
                 // CASE: only "eventIdentifier" given
                 // EXAMPLE: foo.off("update") || foo.off(["update", "add"])
                 if(eventIdentifier !== undefined && callback === undefined && self === undefined){
@@ -424,22 +421,12 @@ function Observe(value, options = {
 
         // helpers
         function createNotifyingFunction(eventName, fn){
-            // pass the event name and the callback function
-            // to a new function that gets an additional object with
-            // a function named callbackExecution
-            // callbackExecution will ...
             return (...args) => {
-                fn(...args,
-                    // {
-                    //     callbackExecution: function(){
-                    //         return eventExecCallback(eventName)
-                    //     }
-                    // }
-                )
+                fn(...args)
             }
         }
         function eventExecCallback(eventName, options = { callBackOnlyChanges: false }){
-            // @TODO: add reason string like "add" etc. must propagate from setter, get() or remove()
+            // @feature: add reason string like "add" etc. must propagate from setter, get() or remove()
             observable.Callbacks
             .filter( cb => cb.events.includes(eventName) )
             .forEach( validCb => {
