@@ -1,0 +1,2 @@
+* replace lodash with lodas-es6
+* remove l3p-core dependency (proto extensions)?

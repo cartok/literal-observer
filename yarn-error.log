@@ -1,0 +1,77 @@
+Arguments: 
+  /usr/bin/node /usr/bin/yarn install
+
+PATH: 
+  /home/cartok/anaconda3/bin:/home/cartok/anaconda3/bin:/home/cartok/anaconda3/bin:/home/cartok/anaconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/usr/lib/jvm/default/bin:/usr/lib/mysql-workbench:/usr/share/intellijidea-ce/bin:/home/cartok/Android/Sdk/tools:/home/cartok/Android/Sdk/platform-tools:/usr/lib/jvm/default/bin:/usr/lib/mysql-workbench:/usr/share/intellijidea-ce/bin:/home/cartok/Android/Sdk/tools:/home/cartok/Android/Sdk/platform-tools:/usr/lib/jvm/default/bin:/usr/lib/mysql-workbench:/usr/share/intellijidea-ce/bin:/home/cartok/Android/Sdk/tools:/home/cartok/Android/Sdk/platform-tools:/usr/lib/jvm/default/bin:/usr/lib/mysql-workbench:/usr/share/intellijidea-ce/bin:/home/cartok/Android/Sdk/tools:/home/cartok/Android/Sdk/platform-tools
+
+Yarn version: 
+  1.2.1
+
+Node version: 
+  8.4.0
+
+Platform: 
+  linux x64
+
+npm manifest: 
+  {
+    "name": "observe-literal-es6",
+    "version": "0.5.2",
+    "description": "observable implementation for js literals. api leaned on jquery-dom-event-api.",
+    "main": "build/Observable.js",
+    "scripts": {
+      "sound:plock": "play -q -v 0.2 $(find /usr/share/sounds/ -type f -name *device-added* | head -n 1)",
+      "sound:microwave": "play -q -v 0.1 $(find /usr/share/sounds/ -type f -name *complete* | head -n 1)",
+      "sound:trash": "play -q -v 0.15 $(find /usr/share/sounds/ -type f -name *trash*  | head -n 1)",
+      "clean:js": "rm $(find ./build/ -type f -regex '.*\\.[jt]sx?') && npm run --silent sound:trash",
+      "clean:dir": "rm -rf ./build && mkdir build && npm run --silent sound:trash",
+      "build": "clear; npm run --silent clean:dir && cp -r ./src/* ./build && npm run --silent sound:microwave",
+      "test": "clear; npm run --silent build && ./node_modules/.bin/mocha --compilers js:babel-core/register --require jsdom-global/register && npm run --silent sound:plock",
+      "dev": "nodemon -x \"rm -rf ./build && mkdir build && cp -r ./src/* ./build && ./node_modules/.bin/mocha --compilers js:babel-core/register --require jsdom-global/register && npm run --silent sound:plock\"",
+      "prepublishOnly": "npm run --silent test"
+    },
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/cartok/observe-literal"
+    },
+    "author": "Dennis Weiershäuser <dennis.weiershaeuser@l3p-cv.com>",
+    "license": "UNLICENSED",
+    "devDependencies": {
+      "babel-cli": "*",
+      "babel-eslint": "*",
+      "babel-plugin-transform-flow-strip-types": "*",
+      "babel-tape-runner": "*",
+      "chai": "*",
+      "eslint": "*",
+      "eslint-plugin-flowtype": "*",
+      "flow-bin": "*",
+      "jquery": "*",
+      "jsdom": "*",
+      "jsdom-global": "*",
+      "mocha": "*",
+      "nodemon": "*"
+    },
+    "dependencies": {
+      "lodash": "*"
+    },
+    "nodemonConfig": {
+      "ignore": [
+        "build",
+        "built",
+        "dist",
+        "bin",
+        "node_modules"
+      ]
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
+
+Trace: 
+  Error: getaddrinfo ENOTFOUND registry.npmjs.org registry.npmjs.org:443
+      at errnoException (dns.js:53:10)
+      at GetAddrInfoReqWrap.onlookup [as oncomplete] (dns.js:95:26)

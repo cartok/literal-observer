@@ -1,7 +1,9 @@
 # Observe-Literal
+
 *An Observable implementation for javascript literals. The API style is leaned on the jQuery Event API.*
 
 ## Installation:
+
 ```npm install observe-literal```  
 ```yarn install observe-literal```
 
@@ -9,16 +11,21 @@
 ## Usage
 
 + import
+
 ```javascript
 import Observable from "observe-literal" 
 ```
 
 + create: 
+
 ```javascript
 const obs = new Observable("initial-value")
 ```
-#### What you get:
-About the Observable: ...  
+
+### What you get:
+
+About the Observable: ...
+
 ```javasript
 {
     // fields

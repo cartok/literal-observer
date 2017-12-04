@@ -1,5 +1,5 @@
 {
-  "name": "observe-literal",
+  "name": "observe-literal-es6",
   "version": "0.5.2",
   "description": "observable implementation for js literals. api leaned on jquery-dom-event-api.",
   "main": "build/Observable.js",
@@ -7,14 +7,17 @@
     "sound:plock": "play -q -v 0.2 $(find /usr/share/sounds/ -type f -name *device-added* | head -n 1)",
     "sound:microwave": "play -q -v 0.1 $(find /usr/share/sounds/ -type f -name *complete* | head -n 1)",
     "sound:trash": "play -q -v 0.15 $(find /usr/share/sounds/ -type f -name *trash*  | head -n 1)",
-    "clean:js": "rm $(find ./build/ -type f -regex '.*\\.[jt]sx?'); npm run --silent sound:trash",
-    "clean:dir": "rm -rf ./build; npm run --silent sound:trash",
-    "build": "clear; npm run --silent clean:dir; babel ./src --out-dir ./build; npm run --silent sound:microwave",
-    "test": "clear; npm run --silent build; ./bin/mocha --compilers js:babel-core/register --require jsdom-global/register; npm run --silent sound:plock",
-    "dev": "nodemon -x \"rm -rf ./build; babel ./src --out-dir ./build;./bin/mocha --compilers js:babel-core/register --require jsdom-global/register; npm run --silent sound:plock\"",
-    "prepublishOnly": "npm run --silent test",
-    "pp": "clear; npm version patch; npm publish",
-    "p": "clear; npm publish"
+    "clean:js": "rm $(find ./build/ -type f -regex '.*\\.[jt]sx?') && npm run --silent sound:trash",
+    "clean:dir": "rm -rf ./build && mkdir build && npm run --silent sound:trash",
+    "babelrc:build": "cp ./.babelrc.build ./.babelrc",
+    "babelrc:mocha": "cp ./.babelrc.mocha ./.babelrc",
+    "mocha": "npm run --silent babelrc:mocha && ./node_modules/.bin/mocha --compilers js:babel-core/register --require jsdom-global/register",
+    "babel": "./node_modules/.bin/babel --out-dir ./build ./src",
+    "--------------------------------------------------------------------------------------------------------------------------------------------": "",
+    "build": "clear; npm run --silent clean:dir && npm run --silent babelrc:build && npm run --silent babel && npm run --silent sound:microwave",
+    "test": "clear; npm run --silent babelrc:mocha && npm run --silent babel && npm run --silent mocha && npm run --silent sound:plock",
+    "test:monitor": "nodemon -x \"npm run --silent test\"",
+    "prepublishOnly": "npm run --silent test && npm run --silent build"
   },
   "repository": {
     "type": "git",
@@ -26,22 +29,19 @@
     "babel-cli": "*",
     "babel-eslint": "*",
     "babel-plugin-transform-flow-strip-types": "*",
-    "babel-preset-env": "*",
-    "babel-tape-runner": "*",
+    "babel-preset-env": "^1.6.1",
     "chai": "*",
-    "del-cli": "*",
     "eslint": "*",
     "eslint-plugin-flowtype": "*",
     "flow-bin": "*",
-    "jquery": "^3.2.1",
+    "jquery": "*",
     "jsdom": "*",
     "jsdom-global": "*",
     "mocha": "*",
     "nodemon": "*"
   },
   "dependencies": {
-    "l3p-core": "^0.1.3",
-    "lodash": "^4.17.4"
+    "lodash": "*"
   },
   "nodemonConfig": {
     "ignore": [

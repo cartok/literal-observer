@@ -1,13 +1,16 @@
 import { merge } from "lodash"
-// DONT MAKE THIS DEPENDEND ON L3P-CORE .
-// SO ON NPM WEB THE DEPENDENCY IS NOT SHOWN.
-// USING OWN REGISTRY.
-import { protoExtArray } from "l3p-core" 
-import { protoExtFunction } from "l3p-core" 
-import { protoExtObject } from "l3p-core" 
+import "./helpers/protoExtArray" 
+import "./helpers/protoExtFunction" 
+import "./helpers/protoExtObject" 
 import Callback from "./Callback"
 import getClassName from "./helpers/getClassName"
 
+
+export default class Observable {
+    constructor(value, options){
+        return Observe(value, options)
+    }
+}
 
 function Observe(value, options = { 
     noExec: false, 
@@ -100,6 +103,7 @@ function Observe(value, options = {
 
                 // the new value is represented as "_change" and can be
                 // handeled to the callback functions on event. (instead of the updated "_value")
+                // @todo: implement object and array deep comparison
                 _change = value
 
                 // UPDATE
@@ -428,8 +432,8 @@ function Observe(value, options = {
         function eventExecCallback(eventName, options = { callBackOnlyChanges: false }){
             // @feature: add reason string like "add" etc. must propagate from setter, get() or remove()
             observable.Callbacks
-            .filter( cb => cb.events.includes(eventName) )
-            .forEach( validCb => {
+                .filter( cb => cb.events.includes(eventName) )
+                .forEach( validCb => {
                 if((observable.callBackOnlyChanges === true) || options.callBackOnlyChanges === true){
                     validCb.callback(_change)
                 } else {
@@ -456,11 +460,5 @@ function Observe(value, options = {
         return observable
     } else {
         return value
-    }
-}
-
-export default class Observable {
-    constructor(value){
-        return Observe(value)
     }
 }
