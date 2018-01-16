@@ -1,12 +1,17 @@
 import { merge } from "lodash"
-// DONT MAKE THIS DEPENDEND ON L3P-CORE .
-// SO ON NPM WEB THE DEPENDENCY IS NOT SHOWN.
-// USING OWN REGISTRY.
-import { protoExtArray } from "l3p-core" 
-import { protoExtFunction } from "l3p-core" 
-import { protoExtObject } from "l3p-core" 
 import Callback from "./Callback"
+
 import getClassName from "./helpers/getClassName"
+
+if(Function.prototype.equals === undefined){
+    Object.defineProperty(Function.prototype, "equals", {
+        value: function(fn){
+            return (this === fn || this.toString() === fn.toString())
+        },
+        enumerable: false,
+        writable: true,
+   })   
+}
 
 
 function Observe(value, options = { 

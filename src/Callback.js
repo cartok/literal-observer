@@ -1,5 +1,15 @@
 import getClassName from "./helpers/getClassName"
 
+if(Array.prototype.clone === undefined){
+    Object.defineProperty(Array.prototype, "clone", {
+        value: function(){
+            return this.slice(0)
+        },
+        enumerable: false,
+        writable: true,
+    })
+}
+
 const VALID_EVENT_NAMES = [ "add", "remove", "update", "before-update", "after-update", "reset" ]
 
 // Callback
