@@ -441,6 +441,7 @@ function Observe(value, options = {
                     switch(eventName){
                         case "before-update":
                             validCb.callback(_value, newValue)
+                            break
                         case "update":
                         case "after-update":
                             validCb.callback(_value)
