@@ -87,7 +87,7 @@ function Observe(value, options = {
                 if(this.noExec === false || options.noExec === false){
                     eventExecCallback("before-update", { 
                         callBackOnlyChanges: options.callBackOnlyChanges 
-                    })
+                    }, value)
                 }
 
                 // the actual update
@@ -430,7 +430,7 @@ function Observe(value, options = {
                 fn(...args)
             }
         }
-        function eventExecCallback(eventName, options = { callBackOnlyChanges: false }){
+        function eventExecCallback(eventName, options = { callBackOnlyChanges: false }, newValue){
             // @feature: add reason string like "add" etc. must propagate from setter, get() or remove()
             observable.Callbacks
             .filter( cb => cb.events.includes(eventName) )
@@ -440,6 +440,7 @@ function Observe(value, options = {
                 } else {
                     switch(eventName){
                         case "before-update":
+                            validCb.callback(_value, newValue)
                         case "update":
                         case "after-update":
                             validCb.callback(_value)
