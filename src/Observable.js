@@ -464,7 +464,7 @@ function Observe(value, options = {
                             validCb.callback(_value)
                             break
                         case "change":
-                            validCb.callback(_value)
+                            validCb.callback(_change)
                             break
                         case "add":
                             validCb.callback(_lastAdd)
