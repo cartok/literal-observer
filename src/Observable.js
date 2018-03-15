@@ -39,7 +39,7 @@ function Observe(value, options = {
         let _change = undefined
 
         // construct new observable and return it.
-        let observable = {
+        const observable = {
 
             // value init
             allreadyObserved : true,
@@ -90,22 +90,39 @@ function Observe(value, options = {
                     }, value)
                 }
 
-                // the actual update
+                // the new value is represented as "_change" and can be
+                // handeled to the callback functions on event. (instead of the updated "_value")
+                _change = value
+
+                // CHANGE
+                switch(getClassName(_value).toLowerCase()){
+                    case "boolean":
+                        if(this.noExec === false || options.noExec === false){
+                            if(_value !== _change){
+                                eventExecCallback("change", { 
+                                    callBackOnlyChanges: options.callBackOnlyChanges 
+                                })
+                            }
+                        }
+                        break
+                    // default:
+                    //     throw new Error("at the moment the 'change' event is only implemented for boolean.")
+                }
+
+                // the actual value update
                 if(this.callBackOnlyChanges === true || options.callBackOnlyChanges === true){
                     switch(getClassName(_value).toLowerCase()){
                         case "object":
                             _value = merge(_value, value)
                             break
                         default:
-                            _value = value
+                            throw new Error("at the moment 'callBackOnlyChanges' is only implemented for objects.")
                     }
-                } else {
+                } 
+                else {
                     _value = value
                 }
 
-                // the new value is represented as "_change" and can be
-                // handeled to the callback functions on event. (instead of the updated "_value")
-                _change = value
 
                 // UPDATE
                 if(this.noExec === false || options.noExec === false){
@@ -444,6 +461,9 @@ function Observe(value, options = {
                             break
                         case "update":
                         case "after-update":
+                            validCb.callback(_value)
+                            break
+                        case "change":
                             validCb.callback(_value)
                             break
                         case "add":
