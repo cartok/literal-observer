@@ -19,7 +19,7 @@ function Observe(value, options = {
     callBackOnlyChanges: false 
 }){
     if(value === undefined || value === null){
-        throw new Error(`The initial value cannot be undefined or null. Use a JS-Literal.`)
+        throw new Error(`The initial value must not be undefined or null. (Use a JS-Literal)`)
     }
     if(value instanceof Function){
         throw  new Error("Functions are not supported as Observables.")
@@ -82,6 +82,11 @@ function Observe(value, options = {
                 noExec: false, 
                 callBackOnlyChanges: false 
             }){
+                // should not update a undefined or null value
+                if(value === undefined || value === null){
+                    throw new Error(`The value for an update must not be undefined or null.`)
+                }
+
                 // instead of using the .value setter one can use this method to update the value
                 this.isInInitialState = false
 

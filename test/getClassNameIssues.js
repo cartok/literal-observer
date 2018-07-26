@@ -14,11 +14,16 @@ describe("testing negative number", () => {
         getClassName(o.initialValue).should.not.be.an("undefined")
     })
     it("should throw an error when initializing with null or undefined", (done) => {
+        let errorThrown = false
         try {
             const o = new Observable(undefined)
         } catch(e){
+            errorThrown = true
             console.log(e.message)
             done()
+        }
+        if(!errorThrown){
+            done(new Error())
         }
     })
 
