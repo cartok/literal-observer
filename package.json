@@ -1,6 +1,6 @@
 {
   "name": "observe-literal",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "description": "observable implementation for js literals. api leaned on jquery-dom-event-api.",
   "main": "build/Observable.js",
   "scripts": {
