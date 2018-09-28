@@ -1,2 +1,2 @@
-export default (o: Object) => o.__proto__.constructor.name
+export default (o: any) => o.__proto__.constructor.name
 

@@ -37,3 +37,4 @@ describe("testing execution of 'before-update', 'update' and 'after-update'", ()
         after.should.be.true
     })
 })
+

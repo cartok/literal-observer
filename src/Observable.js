@@ -18,12 +18,14 @@ function Observe(value, options = {
     noExec: false, 
     callBackOnlyChanges: false 
 }){
-
+    if(value === undefined || value === null){
+        throw new Error(`The initial value cannot be undefined or null. Use a JS-Literal.`)
+    }
     if(value instanceof Function){
-        throw  new Error("functions are not supported to be observed.")
+        throw  new Error("Functions are not supported as Observables.")
     }
 
-    if(!value.allreadyObserved){
+    if(!value || !value.allreadyObserved){
 
         // the value to return on update (etc.) event.
         let _value = value
