@@ -4,8 +4,8 @@ import { expect } from "chai"
 should()
 
 // actual imports
-import Observable from "../build/Observable"
-import getClassName from "../build/helpers/getClassName"
+import Observable from "../dist/Observable"
+import getClassName from "../dist/helpers/getClassName"
 
 describe("testing negative number", () => {
     it("should be able to handle negative number", () => {
