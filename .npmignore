@@ -1,4 +1,13 @@
+/.vscode/
+/benchmark/
+/mochawesome-report/
+/node_modules/
+/src/
 /test/
 
-/node_modules/
-/bin/
+.eslintrc.js
+.flowconfig
+.gitignore 
+.webpack.config.js
+babel.config.*js
+yarn-error-log

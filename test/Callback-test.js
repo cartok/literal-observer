@@ -7,7 +7,7 @@ should()
 import $ from "jquery"
 
 // actual imports
-import Callback from "../build/Callback"
+import Callback from "../dist/Callback"
 
 describe("testing import", () => {
     it("should import Callback", () => {

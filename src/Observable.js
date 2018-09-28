@@ -1,4 +1,4 @@
-import { merge } from "lodash"
+import objectAssignDeep from "@cartok/object-assign-deep"
 import Callback from "./Callback"
 
 import getClassName from "./helpers/getClassName"
@@ -113,7 +113,7 @@ function Observe(value, options = {
                 if(this.callBackOnlyChanges === true || options.callBackOnlyChanges === true){
                     switch(getClassName(_value).toLowerCase()){
                         case "object":
-                            _value = merge(_value, value)
+                            _value = objectAssignDeep(_value, value)
                             break
                         default:
                             throw new Error("at the moment 'callBackOnlyChanges' is only implemented for objects.")
