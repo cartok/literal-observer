@@ -11,12 +11,13 @@ if(Function.prototype.equals === undefined){
         enumerable: false,
         writable: true,
    })   
+} else {
+    throw new Error("...")
 }
 
 
 function Observe(value, options = { 
-    noExec: false, 
-    callBackOnlyChanges: false 
+    onlyReceiveChanges: false 
 }){
     if(value === undefined || value === null){
         throw new Error(`The initial value cannot be undefined or null. Use a JS-Literal.`)
@@ -74,71 +75,55 @@ function Observe(value, options = {
                 return valueCopy
             })(),
 
-            callBackOnlyChanges: options.callBackOnlyChanges,
-            noExec: options.noExec,
+            onlyReceiveChanges: options.onlyReceiveChanges,
 
             // value changes
             update(value, options = { 
-                noExec: false, 
-                callBackOnlyChanges: false 
+                onlyReceiveChanges: false 
             }){
-                // instead of using the .value setter one can use this method to update the value
+                // instead of using the special setter you can use this method to update the value
                 this.isInInitialState = false
 
-                // BEFORE-UPDATE
-                if(this.noExec === false || options.noExec === false){
-                    eventExecCallback("before-update", { 
-                        callBackOnlyChanges: options.callBackOnlyChanges 
-                    }, value)
-                }
+                // TRIGGER: BEFORE-UPDATE
+                eventExecCallback("before-update", { 
+                    onlyReceiveChanges: options.onlyReceiveChanges 
+                }, value)
 
                 // the new value is represented as "_change" and can be
-                // handeled to the callback functions on event. (instead of the updated "_value")
+                // passed in to the callback functions on event. (instead of the updated "_value")
                 _change = value
 
-                // CHANGE
+                // TRIGGER: CHANGE
                 switch(getClassName(_value).toLowerCase()){
                     case "boolean":
-                        if(this.noExec === false || options.noExec === false){
-                            if(_value !== _change){
-                                eventExecCallback("change", { 
-                                    callBackOnlyChanges: options.callBackOnlyChanges 
-                                })
-                            }
+                        if(_value !== _change){
+                            eventExecCallback("change", { 
+                                onlyReceiveChanges: options.onlyReceiveChanges 
+                            })
                         }
                         break
-                    // default:
-                    //     throw new Error("at the moment the 'change' event is only implemented for boolean.")
+                    default:
+                        console.warn("At the moment the 'change' event is only implemented for boolean.")
                 }
 
-                // the actual value update
-                if(this.callBackOnlyChanges === true || options.callBackOnlyChanges === true){
+                // Do the actual value update!
+                if(this.onlyReceiveChanges === true || options.onlyReceiveChanges === true){
                     switch(getClassName(_value).toLowerCase()){
                         case "object":
                             _value = objectAssignDeep(_value, value)
                             break
                         default:
-                            throw new Error("at the moment 'callBackOnlyChanges' is only implemented for objects.")
+                            throw new Error("at the moment 'onlyReceiveChanges' is only implemented for objects.")
                     }
-                } 
-                else {
+                } else {
                     _value = value
                 }
 
 
-                // UPDATE
-                if(this.noExec === false || options.noExec === false){
-                    eventExecCallback("update", { 
-                        callBackOnlyChanges: options.callBackOnlyChanges 
-                    })
-                }
-
-                // AFTER-UPDATE
-                if(this.noExec === false || options.noExec === false){
-                    eventExecCallback("after-update", { 
-                        callBackOnlyChanges: options.callBackOnlyChanges 
-                    })
-                }
+                // TRIGGER: UPDATE
+                eventExecCallback("update", { 
+                    onlyReceiveChanges: options.onlyReceiveChanges 
+                })
             },
             get value(){
                 return _value
@@ -154,46 +139,51 @@ function Observe(value, options = {
                 switch(getClassName(value).toLowerCase()){
                     case "boolean":
                         return new createNotifyingFunction("add", () => {
-                             throw new Error("can not add something to a boolean value.")
-                         })
+                            throw new Error("At this moment add() is only supported for Number, String, Array.")
+                        })
                     case "number":
                         return new createNotifyingFunction("add", (newValue) => {
                             _value += newValue
                             _lastAdd = newValue
                             eventExecCallback("add")
+                            eventExecCallback("update")
                         })
                     case "string":
                         return new createNotifyingFunction("add", (newValue) => {
                             _value += newValue
                             _lastAdd = newValue
                             eventExecCallback("add")
+                            eventExecCallback("update")
                         })
                     case "array":
-                        // @todo: finish handling different newValue types.
-                        return new createNotifyingFunction("add", (newValue, options) => {
-                            // when calling add on an observable u can pass extra options
-                            // like: myObservable.add(["a","b"], {split:true})
-                            switch (getClassName(newValue).toLowerCase()) {
-                                case "array":
-                                    if(options && options.split === true){
-                                        newValue.forEach(val => _value.push(val))
-                                    }
-                                    break
-                                default:
-                                    _value.push(newValue)
+                        // @todo: adapt other functions like this. the name i passed in here was for reason feature. maybe we dont need that.
+                        return (...args) => {
+                            if(args.length === 0){
+                                throw new Error("No arguments.")
                             }
-                            _lastAdd = newValue
+                            if(args.length === 1){
+                                _lastAdd = args[0]
+                                _value.push(args[0])
+                            }
+                            if(args.length > 1){
+                                _lastAdd = args
+                                args.forEach(value => _value.push(value))
+                            }
                             eventExecCallback("add")
-                        })
+                            eventExecCallback("update")
+                        }
                     case "object":
-                        // @todo: handle options
-                        return new createNotifyingFunction("add", (newValue, options) => {
-                            Object.assign(_value, newValue)
-                            _lastAdd = newValue
-                            eventExecCallback("add")
-                        })
+                        return () => {
+                            throw new Error("At this moment add() is only supported for Number, String, Array.")
+                        }
+                        // return new createNotifyingFunction("add", (newValue, options) => {
+                        //     Object.assign(_value, newValue)
+                        //     _lastAdd = newValue
+                        //     eventExecCallback("add")
+                        //     eventExecCallback("update")
+                        // })
                     default:
-                        throw new Error("could not detect type of initial value.")
+                        throw new Error("Could not detect type of initial value. Please report this error!")
                 }
             })(),
             remove: (function(){
@@ -229,11 +219,6 @@ function Observe(value, options = {
                             } else {
                                 throw  new Error("the value you wanted to remove does not exist.")
                             }
-                            // if(options.callbackExecution){
-                            //     _lastRemove = valueToRemove
-                            //     console.log("valueToRemove:", valueToRemove)
-                            //     options.callbackExecution()
-                            // }
                         })
                     case "object":
                         return new createNotifyingFunction("remove", (valueToRemove, options) => {
@@ -282,68 +267,63 @@ function Observe(value, options = {
 
             // callbacks
             Callbacks: [],
-            on(eventIdentifier, callback, self, options = { noExec: false, callBackOnlyChanges: false }){
-                // callback parameter
-                if(callback == undefined) throw  new Error("the callback you wanted to add is undefined.")
+            on(eventIdentifier, callback, self, options = { onlyReceiveChanges: false }){
+                // check callback
+                if(typeof callback !== "function"){
+                    throw new Error("You need to pass a callback function as second parameter.")
+                }
 
-                // options parameter
+                // option handling
                 if(arguments[2]){
                     if(arguments[3]){
-                        this.callBackOnlyChanges = (arguments[2].callBackOnlyChanges === true)
-                            || (arguments[3].callBackOnlyChanges === true) ? true : false
-                        this.noExec = (arguments[2].noExec === true)
-                            || (arguments[3].noExec === true) ? true : false
+                        this.onlyReceiveChanges = (arguments[3].onlyReceiveChanges === true) 
+                            ? true 
+                            : false
                     } else {
-                        this.callBackOnlyChanges = (arguments[2].callBackOnlyChanges === true)
-                            ? true : false
-                        this.noExec = (arguments[2].noExec === true)
-                            ? true : false
+                        this.onlyReceiveChanges = (arguments[2].onlyReceiveChanges === true)
+                            ? true 
+                            : false
                     }
                 }
 
-                // look if the callback allready exists.
+                // @todo: document this better
+                // Don't add a callback if it allready exists.
                 let length = this.Callbacks.length
                 let i = length - 1
                 for(; i >= 0; i--){
-
-                    // if the callback is allready listed:
+                    // If the callback is allready exists...
                     if(this.Callbacks[i].callback.equals(callback)){
                         if(self){
-
-                            // if the callback belongs to to the same object (self parameter):
+                            // If the callback belongs to to the same object...
                             if(Object.is(this.Callbacks[i].self, self)){
-
-                                // if there are new events to trigger the callback, add them:
+                                // If there are new events to trigger the callback, add them...
                                 if(this.Callbacks[i].containsNewEvent(eventIdentifier)){
                                     this.Callbacks[i].addEvents(eventIdentifier)
-                                    return "events added to the callback"
+                                    return
                                 }
                                 else {
-                                    throw  new Error(`the callback you wanted to add allready exists. it belongs to the same object. your event identifier has no new events that could be added.`)
+                                    throw new Error(`The callback you wanted to add allready exists. It belongs to the same object.`)
                                 }
                             }
-
-                            // if the callback exists but its object (self parameter) differs.
+                            // If the callback exists but its object differs...
                             else {
-
-                                // add a new callback linked to its object
+                                // Add a new callback linked to its object
                                 this.Callbacks.push(new Callback(eventIdentifier, callback, self))
-                                return "callback linked to its object was added"
+                                return
                             }
                         }
-
-                        // if the callback allready exists but no self parameter has been passed
+                        // If the callback allready exists but no self parameter has been passed...
                         else {
-                            // add new events to trigger the callback if there are some in the event identifier
+                            // Add new events to trigger the callback if there are some in the event identifier...
                             this.Callbacks[i].addEvents(eventIdentifier)
-                            return "events added to the callback"
+                            return
                         }
-                    }
-                    else {
+                    } else {
                         this.Callbacks.push(new Callback(eventIdentifier, callback, self))
-                        return "new callback added"
+                        return
                     }
                 }
+                // Guess this line can be removed.
                 this.Callbacks.push(new Callback(eventIdentifier, callback, self))
             },
             off(eventIdentifier, callback, self){
@@ -449,12 +429,12 @@ function Observe(value, options = {
                 fn(...args)
             }
         }
-        function eventExecCallback(eventName, options = { callBackOnlyChanges: false }, newValue){
+        function eventExecCallback(eventName, options = { onlyReceiveChanges: false }, newValue){
             // @feature: add reason string like "add" etc. must propagate from setter, get() or remove()
             observable.Callbacks
             .filter( cb => cb.events.includes(eventName) )
             .forEach( validCb => {
-                if((observable.callBackOnlyChanges === true) || options.callBackOnlyChanges === true){
+                if((observable.onlyReceiveChanges === true) || options.onlyReceiveChanges === true){
                     validCb.callback(_change)
                 } else {
                     switch(eventName){
@@ -462,7 +442,6 @@ function Observe(value, options = {
                             validCb.callback(_value, newValue)
                             break
                         case "update":
-                        case "after-update":
                             validCb.callback(_value)
                             break
                         case "change":
