@@ -35,17 +35,24 @@ describe("testing execution of 'before-update' and 'update'", () => {
     })
 })
 
-describe("testing add on an array observable", () => {
-    // add should trigger update aswell
-    describe("when using add() the update event should also be triggered cause the value changed", () => {
+describe("testing feature: change implies update for add(), remove(), change()", () => {
+    it("should not have triggered update", () => {
         let o = new Observable([])
         let updated = false
         o.on("update", () => updated = true)
         o.add(1)
-        it("should have triggered update", () => {
-            updated.should.be.true
-        })
+        updated.should.be.false
     })
+    it("should have triggered update", () => {
+        let o = new Observable([], { changeImpliesUpdate: true })
+        let updated = false
+        o.on("update", () => updated = true)
+        o.add(1)
+        updated.should.be.true
+    })
+})
+
+describe("testing add on an array observable", () => {
 
     // "testing playback sound system" :D
     it("added should be 1; value should be [1]", () => {
