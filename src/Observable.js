@@ -146,14 +146,14 @@ function Observe(value, options = {
                             _value += newValue
                             _lastAdd = newValue
                             eventExecCallback("add")
-                            eventExecCallback("update")
+                            // eventExecCallback("update")
                         })
                     case "string":
                         return new createNotifyingFunction("add", (newValue) => {
                             _value += newValue
                             _lastAdd = newValue
                             eventExecCallback("add")
-                            eventExecCallback("update")
+                            // eventExecCallback("update")
                         })
                     case "array":
                         // @todo: adapt other functions like this. the name i passed in here was for reason feature. maybe we dont need that.
@@ -170,7 +170,7 @@ function Observe(value, options = {
                                 args.forEach(value => _value.push(value))
                             }
                             eventExecCallback("add")
-                            eventExecCallback("update")
+                            // eventExecCallback("update")
                         }
                     case "object":
                         return () => {
@@ -190,7 +190,7 @@ function Observe(value, options = {
                 switch(getClassName(value).toLowerCase()){
                     case "boolean":
                         return new createNotifyingFunction("remove", () => {
-                            throw  new Error("can not remove something from a boolean value.")
+                            throw new Error("can not remove something from a boolean value.")
                         })
                     case "number":
                         return new createNotifyingFunction("remove", (valueToRemove) => {
@@ -204,8 +204,9 @@ function Observe(value, options = {
                             if(str.includes(valueToRemove)){
                                 _value = _value.replace(valueToRemove, "")
                                 _lastRemove = valueToRemove
+                                eventExecCallback("remove")
                             } else {
-                                throw  new Error("the value you wanted to remove is not included in the string.")
+                                throw new Error("the value you wanted to remove is not included in the string.")
                             }
                         })
                     case "array":
@@ -217,7 +218,7 @@ function Observe(value, options = {
                                 _lastRemove = valueToRemove
                                 eventExecCallback("remove")
                             } else {
-                                throw  new Error("the value you wanted to remove does not exist.")
+                                throw new Error("the value you wanted to remove does not exist.")
                             }
                         })
                     case "object":
