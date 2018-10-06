@@ -36,16 +36,16 @@ describe("testing execution of 'before-update' and 'update'", () => {
 })
 
 describe("testing add on an array observable", () => {
-    // add should trigger update aswell
-    describe("when using add() the update event should also be triggered cause the value changed", () => {
-        let o = new Observable([])
-        let updated = false
-        o.on("update", () => updated = true)
-        o.add(1)
-        it("should have triggered update", () => {
-            updated.should.be.true
-        })
-    })
+    // // add should trigger update aswell
+    // describe("when using add() the update event should also be triggered cause the value changed", () => {
+    //     let o = new Observable([])
+    //     let updated = false
+    //     o.on("update", () => updated = true)
+    //     o.add(1)
+    //     it("should have triggered update", () => {
+    //         updated.should.be.true
+    //     })
+    // })
 
     // "testing playback sound system" :D
     it("added should be 1; value should be [1]", () => {
