@@ -103,7 +103,7 @@ function Observe(value, options = {
                         }
                         break
                     default:
-                        console.warn("At the moment the 'change' event is only implemented for boolean.")
+                        // console.warn("At the moment the 'change' event is only implemented for boolean.")
                 }
 
                 // Do the actual value update!
