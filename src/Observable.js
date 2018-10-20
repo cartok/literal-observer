@@ -15,7 +15,6 @@ if(Function.prototype.equals === undefined){
     throw new Error("...")
 }
 
-
 function Observe(value, options = { 
     onlyReceiveChanges: false 
 }){
@@ -37,9 +36,153 @@ function Observe(value, options = {
         // the value to return on remove event.
         let _lastRemove = undefined
 
+        // the value to return on reset event.
+        let _lastReset = undefined
+
         // the value representing the changes on the observed value
         // right now its just the value you update/add or remove with.
         let _change = undefined
+
+        // methods that have access to stuff above
+        const methods = {
+            add: {
+                boolean: null,
+                number: (...args) => {
+                    let len = args.length
+                    if(len === 0){
+                        throw new Error("Empty argument.")
+                    } else if(len === 1){
+                        _value += args[0]
+                        _lastAdd = args[0]
+                    } else if(len > 1){
+                        let sum = 0
+                        for(let i = 0; i < len; i++){
+                            sum += args[i]
+                        }
+                        _lastAdd = sum
+                        _value += sum
+                        sum = null
+                    }
+                    len = null
+                    args = null
+                    eventExecCallback("add")
+                },
+                string: (...args) => {
+                    let len = args.length
+                    if(len === 0){
+                        throw new Error("Empty argument.")
+                    } else if(len === 1){
+                        _value += args[0]
+                        _lastAdd = args[0]
+                    } else if(len > 1){
+                        let sum = ""
+                        for(let i = 0; i < len; i++){
+                            sum += args[i]
+                        }
+                        _lastAdd = sum
+                        _value += sum
+                        sum = null
+                    }
+                    len = null
+                    args = null
+                    eventExecCallback("add")
+                },
+                array: (...args) => {
+                    let len = args.length
+                    if(len === 0){
+                        throw new Error("Empty argument.")
+                    } else if(len === 1){
+                        _lastAdd = args[0]
+                        _value.push(args[0])
+                    } else if(len > 1){
+                        _lastAdd = args
+                        for(let i = 0; i < len; i++){
+                            _value.push(args[i])
+                        }
+                    }
+                    len = null
+                    args = null
+                    eventExecCallback("add")  
+                },
+                object: null,
+                reference: null,
+            },
+            remove: {
+                boolean: null,
+                number: (...args) => {
+                    let len = args.length
+                    if(len === 0){
+                        throw new Error("Empty argument.")
+                    } else if(len === 1){
+                        _value -= args[0]
+                        _lastRemove = args[0]
+                    } else if(len > 1){
+                        let sum = 0
+                        for(let i = 0; i < len; i++){
+                            sum += args[i]
+                        }
+                        _lastRemove = sum
+                        _value -= sum
+                        sum = null
+                    }
+                    len = null
+                    args = null
+                    eventExecCallback("remove")
+                },
+                string: (...args) => {
+                    let len = args.length
+                    if(len === 0){
+                        throw new Error("Empty argument.")
+                    } else if(len === 1){
+                        if(_value.includes(args[0])){
+                            // not optimized
+                            _value = _value.replace(args[0], "")
+                            _lastRemove = args[0]
+                        }
+                    } else if(len > 1){
+                        for(let i = 0; i < len; i++){
+                            // not optimized
+                            _value = _value.replace(args[i], "")
+                        }
+                        _lastRemove = args
+                    }
+                    len = null
+                    args = null
+                    eventExecCallback("remove")
+                },
+                array: (...args) => {
+                    let len = args.length
+                    if(len === 0){
+                        throw new Error("Empty argument.")
+                    } else if(len === 1){
+                        let index = _value.indexOf(args[0])
+                        if(index >= 0){
+                            _value.splice(index, 1)
+                            _lastRemove = args[0]
+                        } else {
+                            throw new Error("The value you wanted to remove does not exist.")
+                        }
+                    } else if(len > 1){
+                        let index = undefined
+                        for(let i = 0; i < len; i++){
+                            index = _value.indexOf(args[i])
+                            if(index >= 0){
+                                _value.splice(index, 1)
+                            } else {
+                                throw new Error("The value you wanted to remove does not exist.")
+                            }
+                        }
+                        _lastRemove = args
+                        index = null
+                    }
+                    len = null
+                    args = null
+                    eventExecCallback("remove")  
+                },
+                object: null,
+                reference: null,
+            },
+        }
 
         // construct new observable and return it.
         const observable = {
@@ -119,7 +262,6 @@ function Observe(value, options = {
                     _value = value
                 }
 
-
                 // TRIGGER: UPDATE
                 eventExecCallback("update", { 
                     onlyReceiveChanges: options.onlyReceiveChanges 
@@ -132,140 +274,61 @@ function Observe(value, options = {
                 this.update(newValue)
             },
             add: (function(){
-                /**
-                * the add and remove method function depends on the type of
-                * the value that becomes an observable.
-                */
                 switch(getClassName(value).toLowerCase()){
                     case "boolean":
-                        return new createNotifyingFunction("add", () => {
-                            throw new Error("At this moment add() is only supported for Number, String, Array.")
-                        })
+                        return methods.add.boolean
                     case "number":
-                        return new createNotifyingFunction("add", (newValue) => {
-                            _value += newValue
-                            _lastAdd = newValue
-                            eventExecCallback("add")
-                            // eventExecCallback("update")
-                        })
+                        return methods.add.number
                     case "string":
-                        return new createNotifyingFunction("add", (newValue) => {
-                            _value += newValue
-                            _lastAdd = newValue
-                            eventExecCallback("add")
-                            // eventExecCallback("update")
-                        })
+                        return methods.add.string
                     case "array":
-                        // @todo: adapt other functions like this. the name i passed in here was for reason feature. maybe we dont need that.
-                        return (...args) => {
-                            if(args.length === 0){
-                                throw new Error("No arguments.")
-                            }
-                            if(args.length === 1){
-                                _lastAdd = args[0]
-                                _value.push(args[0])
-                            }
-                            if(args.length > 1){
-                                _lastAdd = args
-                                args.forEach(value => _value.push(value))
-                            }
-                            eventExecCallback("add")
-                            // eventExecCallback("update")
-                        }
+                        return methods.add.array
                     case "object":
-                        return () => {
-                            throw new Error("At this moment add() is only supported for Number, String, Array.")
-                        }
-                        // return new createNotifyingFunction("add", (newValue, options) => {
-                        //     Object.assign(_value, newValue)
-                        //     _lastAdd = newValue
-                        //     eventExecCallback("add")
-                        //     eventExecCallback("update")
-                        // })
+                        return methods.add.object
                     default:
-                        throw new Error("Could not detect type of initial value. Please report this error!")
+                        return methods.add.reference
                 }
             })(),
             remove: (function(){
                 switch(getClassName(value).toLowerCase()){
                     case "boolean":
-                        return new createNotifyingFunction("remove", () => {
-                            throw new Error("can not remove something from a boolean value.")
-                        })
+                        return methods.remove.boolean
                     case "number":
-                        return new createNotifyingFunction("remove", (valueToRemove) => {
-                            _value -= valueToRemove
-                            _lastRemove = valueToRemove
-                            eventExecCallback("remove")
-                        })
+                        return methods.remove.number
                     case "string":
-                        return new createNotifyingFunction("remove", (valueToRemove) => {
-                            let str = _value
-                            if(str.includes(valueToRemove)){
-                                _value = _value.replace(valueToRemove, "")
-                                _lastRemove = valueToRemove
-                                eventExecCallback("remove")
-                            } else {
-                                throw new Error("the value you wanted to remove is not included in the string.")
-                            }
-                        })
+                        return methods.remove.string
                     case "array":
-                        // @todo: implement value type handling. + split option etc?
-                        return new createNotifyingFunction("remove", (valueToRemove, options) => {
-                            let index = _value.indexOf(valueToRemove)
-                            if(index >= 0){
-                                _value.splice(index, 1)
-                                _lastRemove = valueToRemove
-                                eventExecCallback("remove")
-                            } else {
-                                throw new Error("the value you wanted to remove does not exist.")
-                            }
-                        })
+                        return methods.remove.array
                     case "object":
-                        return new createNotifyingFunction("remove", (valueToRemove, options) => {
-                            switch(getClassName(valueToRemove).toLowerCase()){
-                                case "boolean":
-                                    throw new Error("can't remove a boolean from a object that straight. are u crazy?!")
-                                case "string":
-                                    if(_value.hasOwnProperty(valueToRemove)){
-                                        _value[valueToRemove] = undefined
-                                        _lastRemove = valueToRemove
-                                        eventExecCallback("remove")
-                                    } else {
-                                        throw new Error("the substring you wanted to remove does not exist.")
-                                    }
-                                    break
-                                case "array":
-                                    valueToRemove.forEach((valueToRemove) => {
-                                        if(_value.hasOwnProperty(valueToRemove)){
-                                            _value[valueToRemove] = undefined
-                                        } else {
-                                            throw new Error("the substring you wanted to remove does not exist.")
-                                        }
-                                    })
-                                    _lastRemove = valueToRemove
-                                    eventExecCallback("remove")
-                                    break
-                                case "object":
-                                    // deletes all matching keys
-                                    console.warn("deleting all matching keys. more features not yet implemented. for deleting keys u may use an array of strings instead.")
-                                    for(var member in valueToRemove){
-                                        if(_value.hasOwnProperty(member)){
-                                            _value[member] = undefined
-                                        }
-                                    }
-                                    _lastRemove = valueToRemove
-                                    eventExecCallback("remove")
-                                    break
-                                default:
-                                    throw  new Error("the value you wanted to remove is not valid. use string, array of strings or object")
-                            }
-                        })
+                        return methods.remove.object
                     default:
-                        throw new Error("could not detect type of initial value.")
+                        return methods.remove.reference
                 }
             })(),
-
+            // add to methods object above? need to pass this.initialValue.
+            reset(){
+                eventExecCallback("reset")
+                switch(getClassName(_value).toLowerCase()){
+                    case "object":
+                        _lastReset = _value
+                        _value = Object.assign({}, this.initialValue)
+                        break
+                    case "array":
+                        _lastReset = _value
+                        // _value.length = 0
+                        _value = this.initialValue.slice(0)
+                        break
+                    default:
+                        if(value instanceof Object){
+                            _lastReset = _value
+                            _value = Object.assign({}, this.initialValue)
+                        } else {
+                            _lastReset = _value
+                            _value = this.initialValue
+                        }
+                }
+                this.isInInitialState = true
+            },
             // callbacks
             Callbacks: [],
             on(eventIdentifier, callback, self, options = { onlyReceiveChanges: false }){
@@ -389,35 +452,6 @@ function Observe(value, options = {
                 else {
                     throw  new Error(`invalid arguments.`)
                 }
-            },
-            reset(){
-                // a reset function to reset the value to the one the observable
-                // was initiated with. an observable, for example, that has been
-                // initialized with an empty array, will become [] again.
-                this.isInInitialState = true
-                // update listeners
-                eventExecCallback("reset")
-                // copy old value and override current
-                let valueCopy = undefined
-                switch(getClassName(this.value).toLowerCase()){
-                    case "object":
-                        valueCopy = Object.assign({}, value)
-                        break
-                    case "array":
-                        valueCopy = value.slice(0)
-                        break
-                    default:
-                        // @note: instance of Object !== getClassName({}).toLowerCase().
-                        // custom classes (constructor names) are
-                        // not included in the switch statement.
-                        if(value instanceof Object){
-                            valueCopy = Object.assign({}, value)
-                        } else {
-                            // if its a literal just assign it.
-                            valueCopy = value
-                        }
-                }
-                _value = valueCopy
             },
             clearCallbacks(){
                 this.Callbacks.length = 0
