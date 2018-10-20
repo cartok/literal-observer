@@ -1,5 +1,5 @@
 {
-  "name": "observe-literal",
+  "name": "literal-observer",
   "version": "0.8.0",
   "description": "Observable implementation for js literals. API mirrors jQuery's event API.",
   "main": "dist/Observable.js",
