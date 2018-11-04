@@ -73,5 +73,3 @@ obs.off(["update", "before-update"])
 // remove all callbacks at once
 obs.off()
 ```
-
-### Example

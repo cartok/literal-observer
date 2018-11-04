@@ -65,7 +65,7 @@ function Observe(value, options = {
                     }
                     len = null
                     args = null
-                    eventExecCallback("add")
+                    fire("add")
                 },
                 string: (...args) => {
                     let len = args.length
@@ -85,7 +85,7 @@ function Observe(value, options = {
                     }
                     len = null
                     args = null
-                    eventExecCallback("add")
+                    fire("add")
                 },
                 array: (...args) => {
                     let len = args.length
@@ -102,7 +102,7 @@ function Observe(value, options = {
                     }
                     len = null
                     args = null
-                    eventExecCallback("add")  
+                    fire("add")  
                 },
                 object: null,
                 reference: null,
@@ -127,7 +127,7 @@ function Observe(value, options = {
                     }
                     len = null
                     args = null
-                    eventExecCallback("remove")
+                    fire("remove")
                 },
                 string: (...args) => {
                     let len = args.length
@@ -148,7 +148,7 @@ function Observe(value, options = {
                     }
                     len = null
                     args = null
-                    eventExecCallback("remove")
+                    fire("remove")
                 },
                 array: (...args) => {
                     let len = args.length
@@ -177,7 +177,7 @@ function Observe(value, options = {
                     }
                     len = null
                     args = null
-                    eventExecCallback("remove")  
+                    fire("remove")  
                 },
                 object: null,
                 reference: null,
@@ -228,7 +228,7 @@ function Observe(value, options = {
                 this.isInInitialState = false
 
                 // TRIGGER: BEFORE-UPDATE
-                eventExecCallback("before-update", { 
+                fire("before-update", { 
                     onlyReceiveChanges: options.onlyReceiveChanges 
                 }, value)
 
@@ -240,7 +240,7 @@ function Observe(value, options = {
                 switch(getClassName(_value).toLowerCase()){
                     case "boolean":
                         if(_value !== _change){
-                            eventExecCallback("change", { 
+                            fire("change", { 
                                 onlyReceiveChanges: options.onlyReceiveChanges 
                             })
                         }
@@ -263,7 +263,7 @@ function Observe(value, options = {
                 }
 
                 // TRIGGER: UPDATE
-                eventExecCallback("update", { 
+                fire("update", { 
                     onlyReceiveChanges: options.onlyReceiveChanges 
                 })
             },
@@ -307,7 +307,7 @@ function Observe(value, options = {
             })(),
             // add to methods object above? need to pass this.initialValue.
             reset(){
-                eventExecCallback("reset")
+                fire("reset")
                 switch(getClassName(_value).toLowerCase()){
                     case "object":
                         _lastReset = _value
@@ -458,13 +458,7 @@ function Observe(value, options = {
             },
         }
 
-        // helpers
-        function createNotifyingFunction(eventName, fn){
-            return (...args) => {
-                fn(...args)
-            }
-        }
-        function eventExecCallback(eventName, options = { onlyReceiveChanges: false }, newValue){
+        function fire(eventName, options = { onlyReceiveChanges: false }, newValue){
             // @feature: add reason string like "add" etc. must propagate from setter, get() or remove()
             observable.Callbacks
             .filter( cb => cb.events.includes(eventName) )
