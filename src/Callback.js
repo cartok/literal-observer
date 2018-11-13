@@ -14,7 +14,7 @@ export default class Callback {
         let validEvents = VALID_EVENT_NAMES.slice(0)
         if(eventName){
             if(typeof eventName !== "string"){
-                throw  new Error(`eventname must be a string.`)
+                throw new Error(`eventname must be a string.`)
             }
             if(validEvents.includes(eventName)){
                 return true

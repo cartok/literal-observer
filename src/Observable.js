@@ -3,16 +3,8 @@ import Callback from "./Callback"
 
 import getClassName from "./helpers/getClassName"
 
-if(Function.prototype.equals === undefined){
-    Object.defineProperty(Function.prototype, "equals", {
-        value: function(fn){
-            return (this === fn || this.toString() === fn.toString())
-        },
-        enumerable: false,
-        writable: true,
-   })   
-} else {
-    throw new Error("...")
+function functionsAreEqual(a, b){
+    return (a === b || a.toString() === b.toString())
 }
 
 function Observe(value, options = { 
@@ -361,7 +353,7 @@ function Observe(value, options = {
                 let i = length - 1
                 for(; i >= 0; i--){
                     // If the callback is allready exists...
-                    if(this.Callbacks[i].callback.equals(callback)){
+                    if(functionsAreEqual(this.Callbacks[i], callback)){
                         if(self){
                             // If the callback belongs to to the same object...
                             if(Object.is(this.Callbacks[i].self, self)){
@@ -409,7 +401,7 @@ function Observe(value, options = {
                 else if(eventIdentifier !== undefined && callback !== undefined && self === undefined){
                     // remove all events from all callbacks that match
                     this.Callbacks.forEach(cb => {
-                        if(cb.callback.equals(callback)){
+                        if(functionsAreEqual(cb.callback, callback)){
                             cb.removeEvents(eventIdentifier)
                         }
                     })
@@ -419,7 +411,7 @@ function Observe(value, options = {
                 else if(eventIdentifier !== undefined && callback !== undefined && self !== undefined){
                     // remove all events for all callbacks that match and derive from the object (self)
                     this.Callbacks.forEach(cb => {
-                        if(cb.callback.equals(callback) && Object.is(cb.self, self)){
+                        if(functionsAreEqual(cb.callback, callback) && Object.is(cb.self, self)){
                             cb.removeEvents(eventIdentifier)
                         }
                     })
@@ -439,7 +431,7 @@ function Observe(value, options = {
                 else if(eventIdentifier === undefined && callback !== undefined && self === undefined){
                     // remove all callbacks that match.
                     this.Callbacks.forEach((cb, idx, Callbacks) => {
-                        if(cb.callback.equals(callback)){
+                        if(functionsAreEqual(cb.callback, callback)){
                             Callbacks[idx].splice(idx, 1)
                         }
                     })
@@ -449,7 +441,7 @@ function Observe(value, options = {
                 else if(eventIdentifier === undefined && callback !== undefined && self !== undefined){
                     // remove the callback that has a reference to self if it exists.
                     this.Callbacks.forEach((cb, idx, Callbacks) => {
-                        if(cb.callback.equals(callback) && Object.is(cb.self, self)){
+                        if(functionsAreEqual(cb.callback, callback) && Object.is(cb.self, self)){
                             Callbacks[idx].splice(idx, 1)
                         }
                     })
