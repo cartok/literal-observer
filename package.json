@@ -31,7 +31,7 @@
     "build": "npm run build:webpack && npm run build:es6",
     "test": "npm run build:es5 && mocha -R mochawesome -r @babel/register && chromium ./mochawesome-report/mochawesome.html",
     "test:watch": "nodemon -x \"npm run test\"",
-    "prepublishOnly": "npm run test && npm run build:all"
+    "prepublishOnly": "npm run test && npm run build"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.0",
