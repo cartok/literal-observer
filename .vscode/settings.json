@@ -3,22 +3,11 @@
         // recursive
         "**/.awcache": true,    
         "**/.git": true,        
-        "**/node_modules": true,
+        "**/node_modules": false,
         
         // root
-        "static": true,         
-        "build": true,         
-        "built": true,         
-        "dist": true,         
-        "node_modules": true,
-        "__pycache__": true, 
-
-        // filetype
-        "*.py" : true,
-
-        // specific
-        "package-lock.json": true,
-        "yarn.lock": true
+        "dist": false,         
+        "node_modules": false
     },
     "search.exclude": {
         // recursive
@@ -26,16 +15,9 @@
         "**/.git": true,        
         "**/node_modules": true,
         
-        // root
-        "static": true,
-        "build": true,         
-        "built": true,         
+        // root      
         "dist": true,                  
         "node_modules": true,
-        "__pycache__": true, 
-
-        // filetype
-        "*.py" : true,
 
         // specific
         "package-lock.json": true,
@@ -46,5 +28,6 @@
     "html.format.enable": false,
     "typescript.format.enable": false,
     "javascript.format.enable": false,
-    "javascript.validate.enable": false
+    "javascript.validate.enable": false,
+    "editor.renderWhitespace": "none"
 }

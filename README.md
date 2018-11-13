@@ -3,20 +3,25 @@
 
 ## Installation:
 ```npm install observe-literal```  
-```yarn install observe-literal```
-
 
 ## Usage
-
-+ import
++ module import
 ```javascript
-import Observable from "observe-literal" 
+import Observable from "literal-observer" 
+```
++ html import
+```html
+<script src="https://cdn.jsdelivr.net/npm/literal-observer/dist/bundle.js"></script> 
 ```
 
 + create: 
 ```javascript
-const obs = new Observable("initial-value")
+const obs = new Observable("")
+const obs = new Observable([])
+const obs = new Observable({})
+const obs = new Observable(0)
 ```
+
 #### What you get:
 About the Observable: ...  
 ```javasript
@@ -37,7 +42,7 @@ About the Observable: ...
 ```
 
 + add event listener  
-   *Available Events: before-update, update, after-update, add, remove, reset*
+   *Available Events:* before-update, update, add, remove, reset
 ```javascript
 // before the observable value gets update you can do something with its old value
 obs.on("before-update", (oldValue) => doSomething(oldValue))
@@ -53,48 +58,18 @@ obs.on("remove", (removedValue) => removeSomething(removedValue))
 obs.on(["update", "add", "remove"], someMethod)
 ```
 
-+ remove event listener (caution needs rework, not quite sure about the api)
++ remove event listener
 ```javascript
-// remove a single listener from a single event
-obs.off("update", theListener)
+// remove a single callback from a single event
+obs.off("update", cb)
 
-// remove a single listener from all events
-obs.off(theListener)
+// remove a single callback from all events
+obs.off(cb)
 
-// remove all update listeners
+// remove update event listeners
 obs.off("update")
+obs.off(["update", "before-update"])
 
-// remove all listeners at once
+// remove all callbacks at once
 obs.off()
-```
-
-
-+ example usage of isInInitialState
-```javascript
-// file: model.js
-export default {
-    subject: Observe({})    
-}
-
-// file: presenter.js
-import model from "./model"
-export function activate(data: any){
-    model.subject.update(data)
-}
-export function deactivate(){
-    model.subject.reset()
-}
-export function isActive(){
-    return !model.subject.isInInitialState
-}
-```
-
-### Usage Example:
-#### Definition of a model module with observable values (**follows**)
-```javascript
-import Observable from "observe-literal"
-
-export default {
-    foo: Observe({})   
-}
 ```

@@ -1,52 +1,71 @@
 {
-  "name": "observe-literal",
-  "version": "0.6.5",
-  "description": "observable implementation for js literals. api leaned on jquery-dom-event-api.",
-  "main": "build/Observable.js",
-  "scripts": {
-    "sound:plock": "play -q -v 0.2 $(find /usr/share/sounds/ -type f -name *device-added* | head -n 1)",
-    "sound:microwave": "play -q -v 0.1 $(find /usr/share/sounds/ -type f -name *complete* | head -n 1)",
-    "sound:trash": "play -q -v 0.15 $(find /usr/share/sounds/ -type f -name *trash*  | head -n 1)",
-    "clean:js": "rm $(find ./build/ -type f -regex '.*\\.[jt]sx?')",
-    "clean:dir": "rm -rf ./build",
-    "build": "clear; npm install; npm run clean:dir; babel ./src --out-dir ./build",
-    "test": "clear; npm run build; ./bin/mocha --compilers js:babel-core/register --require jsdom-global/register --ui bdd -R spec",
-    "dev": "nodemon -x \"rm -rf ./build; babel ./src --out-dir ./build;./bin/mocha --compilers js:babel-core/register --require jsdom-global/register\"",
-    "prepublishOnly": "npm run test"
-  },
+  "name": "literal-observer",
+  "version": "0.8.2",
+  "description": "Observable implementation for js literals. API mirrors jQuery's event API.",
+  "main": "dist/Observable.js",
+  "keywords": [
+    "observe",
+    "observer",
+    "observable",
+    "binding",
+    "data",
+    "model",
+    "mvp",
+    "mvc",
+    "mvvm",
+    "mvw"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/cartok/observe-literal"
   },
-  "author": "Dennis Weiershäuser <dennis.weiershaeuser@l3p-cv.com>",
-  "license": "UNLICENSED",
+  "author": "Dennis Weiershäuser <dennis.weiershaeuser@informatik.hs-fulda.de>",
+  "license": "MIT",
+  "scripts": {
+    "babelrc:es5": "cp ./babel.config.es5.js ./babel.config.js",
+    "babelrc:es6": "cp ./babel.config.es6.js ./babel.config.js",
+    "babel": "npm install -d && babel --out-dir ./dist ./src",
+    "build:es5": "npm run babelrc:es5 && npm run babel",
+    "build:es6": "npm run babelrc:es6 && npm run babel",
+    "build:webpack": "npm run babelrc:es5 && npm install -d && webpack --mode=production",
+    "build": "npm run build:webpack && npm run build:es6",
+    "test": "npm run build:es5 && mocha -R mochawesome -r @babel/register && chromium ./mochawesome-report/mochawesome.html",
+    "test:watch": "nodemon -x \"npm run test\"",
+    "prepublishOnly": "npm run test && npm run build:all"
+  },
   "devDependencies": {
-    "babel-cli": "*",
-    "babel-eslint": "*",
-    "babel-plugin-transform-flow-strip-types": "*",
-    "babel-preset-env": "*",
-    "babel-tape-runner": "*",
-    "chai": "*",
-    "del-cli": "*",
-    "eslint": "*",
-    "eslint-plugin-flowtype": "*",
-    "flow-bin": "*",
-    "jquery": "^3.2.1",
-    "jsdom": "*",
-    "jsdom-global": "*",
-    "mocha": "*",
-    "nodemon": "*"
+    "@babel/cli": "^7.1.0",
+    "@babel/core": "^7.1.0",
+    "@babel/plugin-transform-destructuring": "^7.0.0",
+    "@babel/plugin-transform-flow-strip-types": "^7.0.0",
+    "@babel/plugin-transform-spread": "^7.0.0",
+    "@babel/preset-env": "^7.1.0",
+    "@babel/register": "^7.0.0",
+    "babel-loader": "^8.0.4",
+    "chai": "^4.2.0",
+    "eslint": "^5.6.0",
+    "eslint-plugin-flowtype": "^2.50.3",
+    "flow-bin": "^0.81.0",
+    "http-server": "^0.10.0",
+    "jquery": "^3.3.1",
+    "mocha": "^5.2.0",
+    "mochawesome": "^3.0.3",
+    "nodemon": "^1.18.4",
+    "terser-webpack-plugin": "^1.1.0",
+    "uglifyjs-webpack-plugin": "^2.0.1",
+    "webpack": "^4.20.2",
+    "webpack-cli": "^3.1.1"
   },
   "dependencies": {
-    "lodash": "^4.17.4"
+    "@cartok/object-assign-deep": "^0.4.2"
   },
   "nodemonConfig": {
-    "ignore": [
-      "build",
-      "built",
-      "dist",
-      "bin",
-      "node_modules"
-    ]
+    "watch": [
+      "test/**/*",
+      "src/**/*"
+    ],
+    "ext": "js",
+    "delay": 500,
+    "verbose": true
   }
 }

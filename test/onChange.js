@@ -7,7 +7,7 @@ should()
 import $ from "jquery"
 
 // actual imports
-import Observable from "../build/Observable"
+import Observable from "../dist/Observable"
 
 describe("testing on 'change'", () => {
     var o = new Observable(false)

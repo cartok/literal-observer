@@ -1,4 +1,4 @@
-import { merge } from "lodash"
+import objectAssignDeep from "@cartok/object-assign-deep"
 import Callback from "./Callback"
 
 import getClassName from "./helpers/getClassName"
@@ -11,12 +11,12 @@ if(Function.prototype.equals === undefined){
         enumerable: false,
         writable: true,
    })   
+} else {
+    throw new Error("...")
 }
 
-
 function Observe(value, options = { 
-    noExec: false, 
-    callBackOnlyChanges: false 
+    onlyReceiveChanges: false 
 }){
     if(value === undefined || value === null){
         throw new Error(`The initial value must not be undefined or null. (Use a JS-Literal)`)
@@ -36,9 +36,153 @@ function Observe(value, options = {
         // the value to return on remove event.
         let _lastRemove = undefined
 
+        // the value to return on reset event.
+        let _lastReset = undefined
+
         // the value representing the changes on the observed value
         // right now its just the value you update/add or remove with.
         let _change = undefined
+
+        // methods that have access to stuff above
+        const methods = {
+            add: {
+                boolean: null,
+                number: (...args) => {
+                    let len = args.length
+                    if(len === 0){
+                        throw new Error("Empty argument.")
+                    } else if(len === 1){
+                        _value += args[0]
+                        _lastAdd = args[0]
+                    } else if(len > 1){
+                        let sum = 0
+                        for(let i = 0; i < len; i++){
+                            sum += args[i]
+                        }
+                        _lastAdd = sum
+                        _value += sum
+                        sum = null
+                    }
+                    len = null
+                    args = null
+                    fire("add")
+                },
+                string: (...args) => {
+                    let len = args.length
+                    if(len === 0){
+                        throw new Error("Empty argument.")
+                    } else if(len === 1){
+                        _value += args[0]
+                        _lastAdd = args[0]
+                    } else if(len > 1){
+                        let sum = ""
+                        for(let i = 0; i < len; i++){
+                            sum += args[i]
+                        }
+                        _lastAdd = sum
+                        _value += sum
+                        sum = null
+                    }
+                    len = null
+                    args = null
+                    fire("add")
+                },
+                array: (...args) => {
+                    let len = args.length
+                    if(len === 0){
+                        throw new Error("Empty argument.")
+                    } else if(len === 1){
+                        _lastAdd = args[0]
+                        _value.push(args[0])
+                    } else if(len > 1){
+                        _lastAdd = args
+                        for(let i = 0; i < len; i++){
+                            _value.push(args[i])
+                        }
+                    }
+                    len = null
+                    args = null
+                    fire("add")  
+                },
+                object: null,
+                reference: null,
+            },
+            remove: {
+                boolean: null,
+                number: (...args) => {
+                    let len = args.length
+                    if(len === 0){
+                        throw new Error("Empty argument.")
+                    } else if(len === 1){
+                        _value -= args[0]
+                        _lastRemove = args[0]
+                    } else if(len > 1){
+                        let sum = 0
+                        for(let i = 0; i < len; i++){
+                            sum += args[i]
+                        }
+                        _lastRemove = sum
+                        _value -= sum
+                        sum = null
+                    }
+                    len = null
+                    args = null
+                    fire("remove")
+                },
+                string: (...args) => {
+                    let len = args.length
+                    if(len === 0){
+                        throw new Error("Empty argument.")
+                    } else if(len === 1){
+                        if(_value.includes(args[0])){
+                            // not optimized
+                            _value = _value.replace(args[0], "")
+                            _lastRemove = args[0]
+                        }
+                    } else if(len > 1){
+                        for(let i = 0; i < len; i++){
+                            // not optimized
+                            _value = _value.replace(args[i], "")
+                        }
+                        _lastRemove = args
+                    }
+                    len = null
+                    args = null
+                    fire("remove")
+                },
+                array: (...args) => {
+                    let len = args.length
+                    if(len === 0){
+                        throw new Error("Empty argument.")
+                    } else if(len === 1){
+                        let index = _value.indexOf(args[0])
+                        if(index >= 0){
+                            _value.splice(index, 1)
+                            _lastRemove = args[0]
+                        } else {
+                            throw new Error("The value you wanted to remove does not exist.")
+                        }
+                    } else if(len > 1){
+                        let index = undefined
+                        for(let i = 0; i < len; i++){
+                            index = _value.indexOf(args[i])
+                            if(index >= 0){
+                                _value.splice(index, 1)
+                            } else {
+                                throw new Error("The value you wanted to remove does not exist.")
+                            }
+                        }
+                        _lastRemove = args
+                        index = null
+                    }
+                    len = null
+                    args = null
+                    fire("remove")  
+                },
+                object: null,
+                reference: null,
+            },
+        }
 
         // construct new observable and return it.
         const observable = {
@@ -74,13 +218,11 @@ function Observe(value, options = {
                 return valueCopy
             })(),
 
-            callBackOnlyChanges: options.callBackOnlyChanges,
-            noExec: options.noExec,
+            onlyReceiveChanges: options.onlyReceiveChanges,
 
             // value changes
             update(value, options = { 
-                noExec: false, 
-                callBackOnlyChanges: false 
+                onlyReceiveChanges: false 
             }){
                 // should not update a undefined or null value
                 if(value === undefined || value === null){
@@ -90,60 +232,45 @@ function Observe(value, options = {
                 // instead of using the .value setter one can use this method to update the value
                 this.isInInitialState = false
 
-                // BEFORE-UPDATE
-                if(this.noExec === false || options.noExec === false){
-                    eventExecCallback("before-update", { 
-                        callBackOnlyChanges: options.callBackOnlyChanges 
-                    }, value)
-                }
+                // TRIGGER: BEFORE-UPDATE
+                fire("before-update", { 
+                    onlyReceiveChanges: options.onlyReceiveChanges 
+                }, value)
 
                 // the new value is represented as "_change" and can be
-                // handeled to the callback functions on event. (instead of the updated "_value")
+                // passed in to the callback functions on event. (instead of the updated "_value")
                 _change = value
 
-                // CHANGE
+                // TRIGGER: CHANGE
                 switch(getClassName(_value).toLowerCase()){
                     case "boolean":
-                        if(this.noExec === false || options.noExec === false){
-                            if(_value !== _change){
-                                eventExecCallback("change", { 
-                                    callBackOnlyChanges: options.callBackOnlyChanges 
-                                })
-                            }
+                        if(_value !== _change){
+                            fire("change", { 
+                                onlyReceiveChanges: options.onlyReceiveChanges 
+                            })
                         }
                         break
-                    // default:
-                    //     throw new Error("at the moment the 'change' event is only implemented for boolean.")
+                    default:
+                        // console.warn("At the moment the 'change' event is only implemented for boolean.")
                 }
 
-                // the actual value update
-                if(this.callBackOnlyChanges === true || options.callBackOnlyChanges === true){
+                // Do the actual value update!
+                if(this.onlyReceiveChanges === true || options.onlyReceiveChanges === true){
                     switch(getClassName(_value).toLowerCase()){
                         case "object":
-                            _value = merge(_value, value)
+                            _value = objectAssignDeep(_value, value)
                             break
                         default:
-                            throw new Error("at the moment 'callBackOnlyChanges' is only implemented for objects.")
+                            throw new Error("at the moment 'onlyReceiveChanges' is only implemented for objects.")
                     }
-                } 
-                else {
+                } else {
                     _value = value
                 }
 
-
-                // UPDATE
-                if(this.noExec === false || options.noExec === false){
-                    eventExecCallback("update", { 
-                        callBackOnlyChanges: options.callBackOnlyChanges 
-                    })
-                }
-
-                // AFTER-UPDATE
-                if(this.noExec === false || options.noExec === false){
-                    eventExecCallback("after-update", { 
-                        callBackOnlyChanges: options.callBackOnlyChanges 
-                    })
-                }
+                // TRIGGER: UPDATE
+                fire("update", { 
+                    onlyReceiveChanges: options.onlyReceiveChanges 
+                })
             },
             get value(){
                 return _value
@@ -152,203 +279,120 @@ function Observe(value, options = {
                 this.update(newValue)
             },
             add: (function(){
-                /**
-                * the add and remove method function depends on the type of
-                * the value that becomes an observable.
-                */
                 switch(getClassName(value).toLowerCase()){
                     case "boolean":
-                        return new createNotifyingFunction("add", () => {
-                             throw new Error("can not add something to a boolean value.")
-                         })
+                        return methods.add.boolean
                     case "number":
-                        return new createNotifyingFunction("add", (newValue) => {
-                            _value += newValue
-                            _lastAdd = newValue
-                            eventExecCallback("add")
-                        })
+                        return methods.add.number
                     case "string":
-                        return new createNotifyingFunction("add", (newValue) => {
-                            _value += newValue
-                            _lastAdd = newValue
-                            eventExecCallback("add")
-                        })
+                        return methods.add.string
                     case "array":
-                        // @todo: finish handling different newValue types.
-                        return new createNotifyingFunction("add", (newValue, options) => {
-                            // when calling add on an observable u can pass extra options
-                            // like: myObservable.add(["a","b"], {split:true})
-                            switch (getClassName(newValue).toLowerCase()) {
-                                case "array":
-                                    if(options && options.split === true){
-                                        newValue.forEach(val => _value.push(val))
-                                    }
-                                    break
-                                default:
-                                    _value.push(newValue)
-                            }
-                            _lastAdd = newValue
-                            eventExecCallback("add")
-                        })
+                        return methods.add.array
                     case "object":
-                        // @todo: handle options
-                        return new createNotifyingFunction("add", (newValue, options) => {
-                            Object.assign(_value, newValue)
-                            _lastAdd = newValue
-                            eventExecCallback("add")
-                        })
+                        return methods.add.object
                     default:
-                        throw new Error("could not detect type of initial value.")
+                        return methods.add.reference
                 }
             })(),
             remove: (function(){
                 switch(getClassName(value).toLowerCase()){
                     case "boolean":
-                        return new createNotifyingFunction("remove", () => {
-                            throw  new Error("can not remove something from a boolean value.")
-                        })
+                        return methods.remove.boolean
                     case "number":
-                        return new createNotifyingFunction("remove", (valueToRemove) => {
-                            _value -= valueToRemove
-                            _lastRemove = valueToRemove
-                            eventExecCallback("remove")
-                        })
+                        return methods.remove.number
                     case "string":
-                        return new createNotifyingFunction("remove", (valueToRemove) => {
-                            let str = _value
-                            if(str.includes(valueToRemove)){
-                                _value = _value.replace(valueToRemove, "")
-                                _lastRemove = valueToRemove
-                            } else {
-                                throw  new Error("the value you wanted to remove is not included in the string.")
-                            }
-                        })
+                        return methods.remove.string
                     case "array":
-                        // @todo: implement value type handling. + split option etc?
-                        return new createNotifyingFunction("remove", (valueToRemove, options) => {
-                            let index = _value.indexOf(valueToRemove)
-                            if(index >= 0){
-                                _value.splice(index, 1)
-                                _lastRemove = valueToRemove
-                                eventExecCallback("remove")
-                            } else {
-                                throw  new Error("the value you wanted to remove does not exist.")
-                            }
-                            // if(options.callbackExecution){
-                            //     _lastRemove = valueToRemove
-                            //     console.log("valueToRemove:", valueToRemove)
-                            //     options.callbackExecution()
-                            // }
-                        })
+                        return methods.remove.array
                     case "object":
-                        return new createNotifyingFunction("remove", (valueToRemove, options) => {
-                            switch(getClassName(valueToRemove).toLowerCase()){
-                                case "boolean":
-                                    throw new Error("can't remove a boolean from a object that straight. are u crazy?!")
-                                case "string":
-                                    if(_value.hasOwnProperty(valueToRemove)){
-                                        _value[valueToRemove] = undefined
-                                        _lastRemove = valueToRemove
-                                        eventExecCallback("remove")
-                                    } else {
-                                        throw new Error("the substring you wanted to remove does not exist.")
-                                    }
-                                    break
-                                case "array":
-                                    valueToRemove.forEach((valueToRemove) => {
-                                        if(_value.hasOwnProperty(valueToRemove)){
-                                            _value[valueToRemove] = undefined
-                                        } else {
-                                            throw new Error("the substring you wanted to remove does not exist.")
-                                        }
-                                    })
-                                    _lastRemove = valueToRemove
-                                    eventExecCallback("remove")
-                                    break
-                                case "object":
-                                    // deletes all matching keys
-                                    console.warn("deleting all matching keys. more features not yet implemented. for deleting keys u may use an array of strings instead.")
-                                    for(var member in valueToRemove){
-                                        if(_value.hasOwnProperty(member)){
-                                            _value[member] = undefined
-                                        }
-                                    }
-                                    _lastRemove = valueToRemove
-                                    eventExecCallback("remove")
-                                    break
-                                default:
-                                    throw  new Error("the value you wanted to remove is not valid. use string, array of strings or object")
-                            }
-                        })
+                        return methods.remove.object
                     default:
-                        throw new Error("could not detect type of initial value.")
+                        return methods.remove.reference
                 }
             })(),
-
+            // add to methods object above? need to pass this.initialValue.
+            reset(){
+                fire("reset")
+                switch(getClassName(_value).toLowerCase()){
+                    case "object":
+                        _lastReset = _value
+                        _value = Object.assign({}, this.initialValue)
+                        break
+                    case "array":
+                        _lastReset = _value
+                        // _value.length = 0
+                        _value = this.initialValue.slice(0)
+                        break
+                    default:
+                        if(value instanceof Object){
+                            _lastReset = _value
+                            _value = Object.assign({}, this.initialValue)
+                        } else {
+                            _lastReset = _value
+                            _value = this.initialValue
+                        }
+                }
+                this.isInInitialState = true
+            },
             // callbacks
             Callbacks: [],
-            on(eventIdentifier, callback, self, options = { noExec: false, callBackOnlyChanges: false }){
-                // callback parameter
-                if(callback == undefined) throw  new Error("the callback you wanted to add is undefined.")
+            on(eventIdentifier, callback, self, options = { onlyReceiveChanges: false }){
+                // check callback
+                if(typeof callback !== "function"){
+                    throw new Error("You need to pass a callback function as second parameter.")
+                }
 
-                // options parameter
+                // option handling
                 if(arguments[2]){
                     if(arguments[3]){
-                        this.callBackOnlyChanges = (arguments[2].callBackOnlyChanges === true)
-                            || (arguments[3].callBackOnlyChanges === true) ? true : false
-                        this.noExec = (arguments[2].noExec === true)
-                            || (arguments[3].noExec === true) ? true : false
+                        this.onlyReceiveChanges = (arguments[3].onlyReceiveChanges === true) 
+                            ? true 
+                            : false
                     } else {
-                        this.callBackOnlyChanges = (arguments[2].callBackOnlyChanges === true)
-                            ? true : false
-                        this.noExec = (arguments[2].noExec === true)
-                            ? true : false
+                        this.onlyReceiveChanges = (arguments[2].onlyReceiveChanges === true)
+                            ? true 
+                            : false
                     }
                 }
 
-                // look if the callback allready exists.
+                // @todo: document this better
+                // Don't add a callback if it allready exists.
                 let length = this.Callbacks.length
                 let i = length - 1
                 for(; i >= 0; i--){
-
-                    // if the callback is allready listed:
+                    // If the callback is allready exists...
                     if(this.Callbacks[i].callback.equals(callback)){
                         if(self){
-
-                            // if the callback belongs to to the same object (self parameter):
+                            // If the callback belongs to to the same object...
                             if(Object.is(this.Callbacks[i].self, self)){
-
-                                // if there are new events to trigger the callback, add them:
+                                // If there are new events to trigger the callback, add them...
                                 if(this.Callbacks[i].containsNewEvent(eventIdentifier)){
                                     this.Callbacks[i].addEvents(eventIdentifier)
-                                    return "events added to the callback"
+                                    return
                                 }
                                 else {
-                                    throw  new Error(`the callback you wanted to add allready exists. it belongs to the same object. your event identifier has no new events that could be added.`)
+                                    throw new Error(`The callback you wanted to add allready exists. It belongs to the same object.`)
                                 }
                             }
-
-                            // if the callback exists but its object (self parameter) differs.
+                            // If the callback exists but its object differs...
                             else {
-
-                                // add a new callback linked to its object
+                                // Add a new callback linked to its object
                                 this.Callbacks.push(new Callback(eventIdentifier, callback, self))
-                                return "callback linked to its object was added"
+                                return
                             }
                         }
-
-                        // if the callback allready exists but no self parameter has been passed
+                        // If the callback allready exists but no self parameter has been passed...
                         else {
-                            // add new events to trigger the callback if there are some in the event identifier
+                            // Add new events to trigger the callback if there are some in the event identifier...
                             this.Callbacks[i].addEvents(eventIdentifier)
-                            return "events added to the callback"
+                            return
                         }
-                    }
-                    else {
+                    } else {
                         this.Callbacks.push(new Callback(eventIdentifier, callback, self))
-                        return "new callback added"
+                        return
                     }
                 }
+                // Guess this line can be removed.
                 this.Callbacks.push(new Callback(eventIdentifier, callback, self))
             },
             off(eventIdentifier, callback, self){
@@ -414,52 +458,17 @@ function Observe(value, options = {
                     throw  new Error(`invalid arguments.`)
                 }
             },
-            reset(){
-                // a reset function to reset the value to the one the observable
-                // was initiated with. an observable, for example, that has been
-                // initialized with an empty array, will become [] again.
-                this.isInInitialState = true
-                // update listeners
-                eventExecCallback("reset")
-                // copy old value and override current
-                let valueCopy = undefined
-                switch(getClassName(this.value).toLowerCase()){
-                    case "object":
-                        valueCopy = Object.assign({}, value)
-                        break
-                    case "array":
-                        valueCopy = value.slice(0)
-                        break
-                    default:
-                        // @note: instance of Object !== getClassName({}).toLowerCase().
-                        // custom classes (constructor names) are
-                        // not included in the switch statement.
-                        if(value instanceof Object){
-                            valueCopy = Object.assign({}, value)
-                        } else {
-                            // if its a literal just assign it.
-                            valueCopy = value
-                        }
-                }
-                _value = valueCopy
-            },
             clearCallbacks(){
                 this.Callbacks.length = 0
             },
         }
 
-        // helpers
-        function createNotifyingFunction(eventName, fn){
-            return (...args) => {
-                fn(...args)
-            }
-        }
-        function eventExecCallback(eventName, options = { callBackOnlyChanges: false }, newValue){
+        function fire(eventName, options = { onlyReceiveChanges: false }, newValue){
             // @feature: add reason string like "add" etc. must propagate from setter, get() or remove()
             observable.Callbacks
             .filter( cb => cb.events.includes(eventName) )
             .forEach( validCb => {
-                if((observable.callBackOnlyChanges === true) || options.callBackOnlyChanges === true){
+                if((observable.onlyReceiveChanges === true) || options.onlyReceiveChanges === true){
                     validCb.callback(_change)
                 } else {
                     switch(eventName){
@@ -467,7 +476,6 @@ function Observe(value, options = {
                             validCb.callback(_value, newValue)
                             break
                         case "update":
-                        case "after-update":
                             validCb.callback(_value)
                             break
                         case "change":

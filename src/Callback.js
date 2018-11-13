@@ -1,44 +1,20 @@
 import getClassName from "./helpers/getClassName"
 
-if(Array.prototype.clone === undefined){
-    Object.defineProperty(Array.prototype, "clone", {
-        value: function(){
-            return this.slice(0)
-        },
-        enumerable: false,
-        writable: true,
-    })
-}
+const VALID_EVENT_NAMES = [ "add", "remove", "change", "update", "before-update", "reset" ]
 
-const VALID_EVENT_NAMES = [ "add", "remove", "change", "update", "before-update", "after-update", "reset" ]
 
-// Callback
-// ---------------------------------------------------------------------------
-// add update methods for the original value.
-// if custom functions were added to the constructor:
-// use them as add() or/and remove() methods for the new object.
-// RULE: only arrays and objects may have add() and remove() methods.
-// RULE: both methods will trigger the callback functions,
-// that are added on the observable object by a function call.
-// if no custom functions were added to the constructor get the
-// datatype of the original value and add default methods.
-export default class Callback{
+export default class Callback {
     constructor(eventIdentifier, callback, self){
-        // @remove: id, should be no need for it.
-        this.id = getCallbackIndex()
         this.callback = callback
         this.self = self
         this.events = []
         this.addEvents(eventIdentifier)
     }
-    eventNameIsValid(eventName, optionalValidNames){
-        let validEvents = VALID_EVENT_NAMES.clone()
+    eventNameIsValid(eventName){
+        let validEvents = VALID_EVENT_NAMES.slice(0)
         if(eventName){
             if(typeof eventName !== "string"){
                 throw  new Error(`eventname must be a string.`)
-            }
-            if(optionalValidNames){
-                validEvents.concat(optionalValidNames)
             }
             if(validEvents.includes(eventName)){
                 return true
@@ -49,22 +25,22 @@ export default class Callback{
             throw  new Error(`eventname is not defined, use ${validEvents}.`)
         }
     }
-    eventIdentifierIsValid(eventIdentifier, optionalValidNames){
+    eventIdentifierIsValid(eventIdentifier){
         switch(getClassName(eventIdentifier).toLowerCase()){
             case "string":
-                return this.eventNameIsValid(eventIdentifier, optionalValidNames)
+                return this.eventNameIsValid(eventIdentifier)
             case "array":
                 // check if all values are strings
                 if(eventIdentifier.every(elem => typeof elem === "string") === false){
                     throw  new Error("array must contain strings only.")
                 }
-                if(eventIdentifier.every(eventName => this.eventNameIsValid(eventName, optionalValidNames))){
+                if(eventIdentifier.every(eventName => this.eventNameIsValid(eventName))){
                     return true
                 } else {
                     return false
                 }
             default:
-                throw  new Error("event identifier must be a string or array of strings.")
+                throw new Error("event identifier must be a string or array of strings.")
         }
     }
     eventExists(eventName){
@@ -145,9 +121,3 @@ export default class Callback{
         this.events.length = 0
     }
 }
-
-let counter = -1;
-function getCallbackIndex(){
-    return ++counter
-}
-// ---------------------------------------------------------------------------

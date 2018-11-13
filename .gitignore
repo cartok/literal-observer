@@ -1,6 +1,7 @@
 /build/
-/built/
-/static/
 /dist/
-
+/mochawesome-report/
 /node_modules/
+
+babel.config.js
+yarn-error-log
