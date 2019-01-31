@@ -235,6 +235,8 @@ function Observe(value, options = {
 
                 // TRIGGER: CHANGE
                 switch(getClassName(_value).toLowerCase()){
+                    case "string":
+                    case "number":
                     case "boolean":
                         if(_value !== _change){
                             fire("change", { 
@@ -243,7 +245,7 @@ function Observe(value, options = {
                         }
                         break
                     default:
-                        // console.warn("At the moment the 'change' event is only implemented for boolean.")
+                        console.warn("At the moment the 'change' event is only implemented for boolean, string and number literals.")
                 }
 
                 // Do the actual value update!
